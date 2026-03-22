@@ -1,0 +1,1399 @@
+<!DOCTYPE html>
+<html lang="fr"><head></head><body id="artifacts-component-root-html"><div id="edit-bar">
+<button onmousedown="event.preventDefault(); document.execCommand('undo')" style="font-size:15px;" title="Annuler (Ctrl+Z)">↩</button>
+<button onmousedown="event.preventDefault(); document.execCommand('redo')" style="font-size:15px;" title="Rétablir (Ctrl+Y)">↪</button>
+<div class="eb-sep"></div>
+<span class="eb-label">Mise en forme</span>
+<select id="eb-font" onchange="applyFont(this.value)" onmousedown="event.stopPropagation()">
+<option value="">Police</option>
+<option value="'Inter',sans-serif">Inter (moderne)</option>
+<option value="'Cormorant Garamond',serif">Cormorant (élégant)</option>
+<option value="Georgia,serif">Georgia</option>
+<option value="Arial,sans-serif">Arial</option>
+<option value="'Courier New',monospace">Courier</option>
+</select>
+<select id="eb-size" onchange="applySize(this.value)" onmousedown="event.stopPropagation()">
+<option value="">Taille</option>
+<option value="1">Très petit</option>
+<option value="2">Petit</option>
+<option value="3">Normal</option>
+<option value="4">Moyen</option>
+<option value="5">Grand</option>
+<option value="6">Très grand</option>
+<option value="7">Énorme</option>
+</select>
+<div class="eb-sep"></div>
+<button id="eb-bold" onmousedown="event.preventDefault(); ebFmt('bold')" title="Gras (Ctrl+B)"><strong>B</strong></button>
+<button id="eb-italic" onmousedown="event.preventDefault(); ebFmt('italic')" title="Italique (Ctrl+I)" class=""><em>I</em></button>
+<button id="eb-underline" onmousedown="event.preventDefault(); ebFmt('underline')" title="Souligné (Ctrl+U)"><u>U</u></button>
+<button id="eb-strike" onmousedown="event.preventDefault(); ebFmt('strikeThrough')" title="Barré"><s>S</s></button>
+<div class="eb-sep"></div>
+<button onmousedown="event.preventDefault(); ebFmt('justifyLeft')" title="Gauche">⬅</button>
+<button onmousedown="event.preventDefault(); ebFmt('justifyCenter')" title="Centrer">⬌</button>
+<button onmousedown="event.preventDefault(); ebFmt('justifyRight')" title="Droite">➡</button>
+<div class="eb-sep"></div>
+<div class="eb-color" onmousedown="event.preventDefault(); ebColor('#FFF6E8')" style="background:#FFF6E8;" title="Crème"></div>
+<div class="eb-color" onmousedown="event.preventDefault(); ebColor('#C8903A')" style="background:#C8903A;" title="Or"></div>
+<div class="eb-color" onmousedown="event.preventDefault(); ebColor('#C25538')" style="background:#C25538;" title="Terra"></div>
+<div class="eb-color" onmousedown="event.preventDefault(); ebColor('#8A7F76')" style="background:#8A7F76;" title="Gris"></div>
+<div class="eb-color" onmousedown="event.preventDefault(); ebFmt('removeFormat')" style="font-size:10px;" title="Effacer format">✕</div>
+<div class="eb-sep"></div>
+<button onmousedown="event.preventDefault(); ebFmt('removeFormat')" style="font-size:10px;" title="Effacer la mise en forme">✕ format</button>
+<button class="eb-save" onclick="saveModifs()">⬇ Sauvegarder</button>
+</div>
+
+
+
+
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>VALIANN — EPK SILHOUETTES</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400&amp;family=Inter:wght@300;400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+  :root {
+    --black:     #0D0D0D;
+    --charcoal:  #1A1817;
+    --terra:     #C25538;
+    --gold:      #C8903A;
+    --cream:     #FFF6E8;
+    --muted:     #8A7F76;
+    --border:    rgba(200,144,58,0.25);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--black);
+    color: var(--cream);
+    font-family: 'Inter', sans-serif;
+    font-weight: 300;
+    line-height: 1.7;
+    overflow-x: hidden;
+  }
+
+  /* ── HERO ─────────────────────────────────────────────── */
+  .hero {
+    position: relative;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 0 60px 80px;
+    background: linear-gradient(160deg, #1A1817 0%, #0D0D0D 50%, #1c0f09 100%);
+    overflow: hidden;
+  }
+
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -10%;
+    right: -5%;
+    width: 55%;
+    height: 110%;
+    background: linear-gradient(180deg, rgba(194,85,56,0.12) 0%, rgba(200,144,58,0.08) 60%, transparent 100%);
+    clip-path: polygon(20% 0%, 100% 0%, 100% 100%, 0% 100%);
+    pointer-events: none;
+  }
+
+  .hero-photo {
+    position: absolute;
+    top: 0; right: 0;
+    width: 48%;
+    height: 100%;
+    background: linear-gradient(135deg, #2a1a14 0%, #1A1817 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+  .hero-photo-inner {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(160deg, #2d1f18 0%, #1a1210 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    border-left: 1px solid var(--border);
+  }
+  .photo-placeholder-icon {
+    width: 80px; height: 80px;
+    border: 2px dashed rgba(200,144,58,0.4);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 28px; color: rgba(200,144,58,0.4);
+  }
+  .photo-placeholder-text {
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: rgba(200,144,58,0.4);
+    text-align: center;
+  }
+
+  .hero-left {
+    position: relative;
+    z-index: 2;
+    max-width: 52%;
+  }
+
+  .hero-label {
+    font-size: 11px;
+    letter-spacing: 5px;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .hero-label::before {
+    content: '';
+    width: 40px;
+    height: 1px;
+    background: var(--gold);
+    display: block;
+  }
+
+  .hero-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(72px, 10vw, 130px);
+    font-weight: 300;
+    letter-spacing: -2px;
+    line-height: 0.9;
+    color: var(--cream);
+    margin-bottom: 20px;
+  }
+
+  .hero-ep {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(20px, 3vw, 32px);
+    font-weight: 300;
+    font-style: italic;
+    color: var(--terra);
+    letter-spacing: 2px;
+    margin-bottom: 40px;
+  }
+
+  .hero-genre {
+    font-size: 11px;
+    letter-spacing: 6px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 60px;
+  }
+
+  .hero-contact-bar {
+    display: flex;
+    gap: 40px;
+    flex-wrap: wrap;
+  }
+  .hero-contact-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .hero-contact-label {
+    font-size: 9px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .hero-contact-value {
+    font-size: 13px;
+    color: var(--cream);
+    font-weight: 400;
+  }
+  .hero-contact-value a {
+    color: var(--cream);
+    text-decoration: none;
+  }
+  .hero-contact-value a:hover { color: var(--gold); }
+
+  /* ── SECTION BASE ────────────────────────────────────── */
+  section {
+    padding: 100px 60px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .section-label {
+    font-size: 10px;
+    letter-spacing: 5px;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .section-label::before {
+    content: '';
+    width: 30px; height: 1px;
+    background: var(--gold);
+  }
+
+  .section-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(36px, 5vw, 60px);
+    font-weight: 300;
+    line-height: 1.1;
+    margin-bottom: 40px;
+    color: var(--cream);
+  }
+  .section-title em {
+    font-style: italic;
+    color: var(--terra);
+  }
+
+  .divider {
+    width: 100%;
+    height: 1px;
+    background: var(--border);
+    margin: 0;
+  }
+
+  /* ── ABOUT ──────────────────────────────────────────── */
+  .about-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 80px;
+    align-items: start;
+  }
+
+  .about-text p {
+    font-size: 15px;
+    color: rgba(255,246,232,0.75);
+    margin-bottom: 20px;
+    line-height: 1.9;
+  }
+  .about-text p strong {
+    color: var(--cream);
+    font-weight: 500;
+  }
+
+  .about-photo {
+    background: linear-gradient(160deg, #2a1a14, #1a1210);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    aspect-ratio: 3/4;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+  }
+
+  /* ── SILHOUETTES EP ─────────────────────────────────── */
+  .ep-section {
+    background: linear-gradient(160deg, #1c1410 0%, #0D0D0D 100%);
+    padding: 100px 0;
+    position: relative;
+    overflow: hidden;
+  }
+  .ep-section::before {
+    content: 'SILHOUETTES';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%,-50%);
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 200px;
+    font-weight: 700;
+    color: rgba(194,85,56,0.04);
+    white-space: nowrap;
+    pointer-events: none;
+    letter-spacing: 20px;
+  }
+  .ep-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 60px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .ep-cover {
+    display: grid;
+    grid-template-columns: 380px 1fr;
+    gap: 80px;
+    align-items: center;
+  }
+
+  .ep-cover-art {
+    aspect-ratio: 1;
+    background: linear-gradient(145deg, #2d1f18, #1a1210);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+  }
+
+  .ep-info .ep-title-main {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 80px;
+    font-weight: 300;
+    line-height: 0.9;
+    letter-spacing: 8px;
+    color: var(--cream);
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+  .ep-info .ep-subtitle {
+    font-size: 11px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--terra);
+    margin-bottom: 40px;
+  }
+  .ep-info .ep-desc {
+    font-size: 15px;
+    color: rgba(255,246,232,0.7);
+    line-height: 1.9;
+    max-width: 540px;
+    margin-bottom: 48px;
+  }
+
+  .ep-meta {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 30px;
+    border-top: 1px solid var(--border);
+    padding-top: 30px;
+  }
+  .ep-meta-item .meta-label {
+    font-size: 9px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+  .ep-meta-item .meta-value {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 20px;
+    color: var(--cream);
+    font-weight: 400;
+  }
+
+  /* ── SINGLES ────────────────────────────────────────── */
+  .singles-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2px;
+    margin-top: 60px;
+  }
+
+  .single-card {
+    background: linear-gradient(160deg, #1c1410, #141010);
+    border: 1px solid var(--border);
+    padding: 50px;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.3s;
+  }
+  .single-card:hover { border-color: var(--terra); }
+  .single-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--terra), var(--gold));
+  }
+
+  .single-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 80px;
+    font-weight: 300;
+    color: rgba(194,85,56,0.12);
+    line-height: 1;
+    position: absolute;
+    top: 30px; right: 40px;
+  }
+
+  .single-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 44px;
+    font-weight: 300;
+    color: var(--cream);
+    letter-spacing: 2px;
+    margin-bottom: 8px;
+    position: relative;
+  }
+
+  .single-type {
+    font-size: 10px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--terra);
+    margin-bottom: 24px;
+  }
+
+  .single-desc {
+    font-size: 14px;
+    color: rgba(255,246,232,0.65);
+    line-height: 1.8;
+    margin-bottom: 30px;
+  }
+
+  .single-dates {
+    display: flex;
+    gap: 30px;
+  }
+  .single-date-item .date-label {
+    font-size: 9px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+  .single-date-item .date-value {
+    font-size: 13px;
+    color: var(--gold);
+    font-weight: 500;
+  }
+
+  .single-photo {
+    margin-top: 30px;
+    height: 160px;
+    background: linear-gradient(145deg, #2a1a14, #1a1210);
+    border: 1px dashed rgba(200,144,58,0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    border-radius: 2px;
+  }
+  .single-photo span {
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: rgba(200,144,58,0.35);
+  }
+
+  /* ── PARCOURS ───────────────────────────────────────── */
+  .timeline {
+    position: relative;
+    padding-left: 30px;
+    border-left: 1px solid var(--border);
+    margin-top: 50px;
+    display: flex;
+    flex-direction: column;
+    gap: 40px;
+  }
+
+  .timeline-item {
+    position: relative;
+  }
+  .timeline-item::before {
+    content: '';
+    position: absolute;
+    left: -35px;
+    top: 6px;
+    width: 9px; height: 9px;
+    background: var(--terra);
+    border-radius: 50%;
+  }
+  .timeline-year {
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 6px;
+  }
+  .timeline-text {
+    font-size: 14px;
+    color: rgba(255,246,232,0.72);
+    line-height: 1.8;
+  }
+  .timeline-text strong {
+    color: var(--cream);
+    font-weight: 500;
+  }
+
+  /* ── PHOTOS GALLERY ─────────────────────────────────── */
+  .gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 3px;
+    margin-top: 50px;
+  }
+
+  .gallery-item {
+    aspect-ratio: 1;
+    background: linear-gradient(145deg, #2a1a14, #1a1210);
+    border: 1px dashed rgba(200,144,58,0.2);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+  }
+  .gallery-item-tall {
+    grid-row: span 2;
+    aspect-ratio: auto;
+  }
+  .gallery-item span {
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: rgba(200,144,58,0.3);
+  }
+  .gallery-icon {
+    font-size: 24px;
+    color: rgba(200,144,58,0.25);
+  }
+
+  /* ── CONTACT ────────────────────────────────────────── */
+  .contact-section {
+    background: linear-gradient(160deg, #1c1410, #0D0D0D);
+    padding: 120px 60px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .contact-section::after {
+    content: '';
+    position: absolute;
+    bottom: -60px; left: 50%;
+    transform: translateX(-50%);
+    width: 400px; height: 400px;
+    background: radial-gradient(circle, rgba(194,85,56,0.08), transparent 70%);
+    pointer-events: none;
+  }
+  .contact-section .section-label {
+    justify-content: center;
+  }
+  .contact-section .section-label::before { display: none; }
+
+  .contact-cards {
+    display: flex;
+    justify-content: center;
+    gap: 2px;
+    flex-wrap: wrap;
+    margin-top: 60px;
+  }
+
+  .contact-card {
+    background: rgba(255,246,232,0.03);
+    border: 1px solid var(--border);
+    padding: 40px 50px;
+    min-width: 220px;
+    transition: background 0.3s, border-color 0.3s;
+  }
+  .contact-card:hover {
+    background: rgba(194,85,56,0.06);
+    border-color: rgba(194,85,56,0.4);
+  }
+  .contact-card .cc-label {
+    font-size: 9px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 12px;
+  }
+  .contact-card .cc-value {
+    font-size: 14px;
+    color: var(--cream);
+    font-weight: 400;
+  }
+  .contact-card .cc-value a {
+    color: var(--cream);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+  .contact-card .cc-value a:hover { color: var(--gold); }
+
+  /* ── FOOTER ─────────────────────────────────────────── */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 30px 60px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 1px;
+  }
+
+  /* ── RESPONSIVE ─────────────────────────────────────── */
+  @media (max-width: 900px) {
+    .hero { padding: 40px 30px 60px; }
+    .hero-left { max-width: 100%; }
+    .hero-photo { display: none; }
+    section { padding: 60px 30px; }
+    .about-grid, .ep-cover, .singles-grid { grid-template-columns: 1fr; gap: 40px; }
+    .gallery-grid { grid-template-columns: 1fr 1fr; }
+    .contact-section { padding: 80px 30px; }
+    footer { flex-direction: column; gap: 10px; text-align: center; }
+    .ep-section::before { font-size: 60px; }
+    .hero-name { font-size: 60px; }
+  }
+
+  /* ── EDIT HINT ───────────────────────────────────────── */
+  .edit-hint {
+    position: fixed;
+    bottom: 20px; right: 20px;
+    background: rgba(200,144,58,0.9);
+    color: #0D0D0D;
+    padding: 10px 18px;
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    font-weight: 600;
+    border-radius: 2px;
+    cursor: pointer;
+    z-index: 999;
+    font-family: 'Inter', sans-serif;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+  }
+
+  /* always editable */
+  [contenteditable]:focus {
+    outline: 2px dashed rgba(200,144,58,0.5);
+    outline-offset: 4px;
+  }
+  [contenteditable]:empty:before {
+    content: attr(data-placeholder);
+    color: rgba(255,255,255,0.2);
+    font-style: italic;
+  }
+
+  /* ── ZONE PHOTO CLICKABLE ─────────────────────────── */
+  .photo-zone { cursor:pointer; transition:border-color 0.3s,background 0.3s; position:relative; overflow:hidden; }
+  .photo-zone:hover { border-color:rgba(200,144,58,0.6)!important; background:rgba(200,144,58,0.05)!important; }
+  .photo-zone img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:1; }
+  .photo-zone .pz-label { position:relative; z-index:2; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; width:100%; height:100%; pointer-events:none; }
+  .photo-zone.has-photo .pz-label { display:none; }
+
+  /* ── BOUTON SUPPRIMER ─────────────────────────────── */
+  .deletable { position:relative; }
+  .deletable .del-btn { display:none; position:absolute; top:6px; right:6px; z-index:200; background:rgba(194,85,56,0.9); color:#fff; border:none; border-radius:2px; width:24px; height:24px; font-size:14px; line-height:24px; text-align:center; cursor:pointer; }
+  .deletable:hover > .del-btn { display:block; }
+  .deletable .del-btn:hover { background:#c25538; }
+
+  /* ── GALERIE AJOUTER ──────────────────────────────── */
+  .add-photo-btn { aspect-ratio:1; background:rgba(200,144,58,0.03); border:1px dashed rgba(200,144,58,0.25); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; cursor:pointer; font-family:'Inter',sans-serif; font-size:10px; letter-spacing:3px; text-transform:uppercase; color:rgba(200,144,58,0.45); transition:all 0.3s; }
+  .add-photo-btn:hover { background:rgba(200,144,58,0.08); border-color:rgba(200,144,58,0.6); color:var(--gold); }
+  .add-photo-btn .add-icon { font-size:24px; color:rgba(200,144,58,0.4); }
+
+  /* ── SUPPRIMER SECTION ────────────────────────────── */
+  .deletable-section { position:relative; }
+  .section-del { display:none; position:absolute; top:12px; right:12px; z-index:200; background:transparent; border:1px solid rgba(194,85,56,0.35); color:rgba(194,85,56,0.65); font-size:10px; letter-spacing:2px; text-transform:uppercase; padding:4px 12px; cursor:pointer; font-family:'Inter',sans-serif; transition:all 0.2s; }
+  .deletable-section:hover > .section-del { display:block; }
+  .section-del:hover { background:rgba(194,85,56,0.12); color:#C25538; border-color:#C25538; }
+
+  /* ── INSÉRER SECTION ──────────────────────────────── */
+  .insert-zone { display:flex; align-items:center; justify-content:center; height:0; overflow:visible; position:relative; z-index:50; }
+  .insert-btn { display:none; background:rgba(200,144,58,0.06); border:1px dashed rgba(200,144,58,0.35); color:rgba(200,144,58,0.6); font-size:10px; letter-spacing:3px; text-transform:uppercase; padding:5px 18px; cursor:pointer; font-family:'Inter',sans-serif; transition:all 0.2s; white-space:nowrap; }
+  .insert-zone:hover .insert-btn { display:block; }
+  .insert-btn:hover { background:rgba(200,144,58,0.14); color:var(--gold); }
+
+  /* ── AJOUTER ITEM ─────────────────────────────────── */
+  .add-item-btn { display:flex; align-items:center; justify-content:center; gap:10px; margin-top:16px; background:transparent; border:1px dashed rgba(200,144,58,0.25); color:rgba(200,144,58,0.5); font-size:10px; letter-spacing:3px; text-transform:uppercase; padding:12px 20px; cursor:pointer; font-family:'Inter',sans-serif; transition:all 0.3s; width:100%; }
+  .add-item-btn:hover { background:rgba(200,144,58,0.06); border-color:rgba(200,144,58,0.5); color:var(--gold); }
+
+  
+
+
+  /* ── BARRE D'ÉDITION FIXE ───────────────────────────── */
+  #edit-bar {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 99999;
+    background: #111009; border-bottom: 1px solid rgba(200,144,58,0.3);
+    display: flex; align-items: center; gap: 2px; padding: 6px 12px;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.5); flex-wrap: wrap;
+  }
+  #edit-bar .eb-label {
+    font-family: 'Inter', sans-serif; font-size: 9px; letter-spacing: 3px;
+    text-transform: uppercase; color: rgba(200,144,58,0.5); margin-right: 6px; white-space: nowrap;
+  }
+  #edit-bar button {
+    background: transparent; border: none; color: rgba(245,237,224,0.65);
+    font-size: 13px; padding: 5px 9px; cursor: pointer; border-radius: 2px;
+    font-family: 'Inter', sans-serif; transition: background 0.15s, color 0.15s;
+    line-height: 1; min-width: 30px;
+  }
+  #edit-bar button:hover { background: rgba(200,144,58,0.15); color: #FFF6E8; }
+  #edit-bar button.eb-active { background: rgba(200,144,58,0.25); color: var(--gold); }
+  #edit-bar .eb-sep { width: 1px; height: 20px; background: rgba(245,237,224,0.1); margin: 0 4px; flex-shrink: 0; }
+  #edit-bar select {
+    background: #1c1813; border: 1px solid rgba(200,144,58,0.2);
+    color: rgba(245,237,224,0.7); font-size: 11px; padding: 4px 7px;
+    font-family: 'Inter', sans-serif; cursor: pointer; border-radius: 2px; outline: none;
+  }
+  #edit-bar select option { background: #111009; color: #FFF6E8; }
+  #edit-bar .eb-color {
+    width: 18px; height: 18px; border-radius: 50%;
+    border: 2px solid rgba(255,255,255,0.15); cursor: pointer;
+    flex-shrink: 0; transition: transform 0.15s, border-color 0.15s;
+  }
+  #edit-bar .eb-color:hover { transform: scale(1.3); border-color: white; }
+  #edit-bar .eb-save {
+    margin-left: auto; background: #C25538; color: white;
+    border: none; padding: 5px 16px; font-size: 10px; letter-spacing: 2px;
+    text-transform: uppercase; cursor: pointer; font-family: 'Inter', sans-serif;
+    font-weight: 600; border-radius: 2px; transition: background 0.2s; white-space: nowrap;
+  }
+  #edit-bar .eb-save:hover { background: #a83d24; }
+  body { padding-top: 46px; }
+
+  /* ── DRAG & DROP SECTIONS ───────────────────────────── */
+  .drag-handle {
+    display: none; position: absolute; left: -32px; top: 50%;
+    transform: translateY(-50%); cursor: grab; color: rgba(200,144,58,0.35);
+    font-size: 18px; user-select: none; padding: 6px; line-height: 1;
+    transition: color 0.2s;
+  }
+  .drag-handle:hover { color: var(--gold); }
+  .drag-handle:active { cursor: grabbing; }
+  .deletable-section:hover > .drag-handle,
+  section:hover > .drag-handle { display: block; }
+  .dragging { opacity: 0.4; }
+  .drag-over { border-top: 2px solid var(--gold); }
+
+
+  /* ── MODAL INSÉRER SECTION ─────────────────────────── */
+  #insert-modal-overlay {
+    display:none; position:fixed; inset:0; z-index:9999;
+    background:rgba(13,13,13,0.88); backdrop-filter:blur(6px);
+    align-items:center; justify-content:center;
+  }
+  #insert-modal-overlay.active { display:flex; }
+  #insert-modal {
+    background:#1A1817; border:1px solid rgba(200,144,58,0.25);
+    padding:48px 52px 40px; max-width:680px; width:90%;
+    position:relative;
+  }
+  #insert-modal h3 {
+    font-family:'Cormorant Garamond',serif; font-weight:300;
+    font-size:28px; letter-spacing:1px; color:var(--cream);
+    margin-bottom:8px;
+  }
+  #insert-modal .im-sub {
+    font-size:10px; letter-spacing:3px; text-transform:uppercase;
+    color:var(--muted); margin-bottom:36px;
+  }
+  .im-cards { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
+  .im-card {
+    background:rgba(255,246,232,0.03); border:1px solid rgba(200,144,58,0.18);
+    padding:24px 18px 20px; cursor:pointer; transition:all 0.2s;
+    text-align:center;
+  }
+  .im-card:hover { background:rgba(200,144,58,0.08); border-color:rgba(200,144,58,0.5); }
+  .im-card .im-icon { font-size:28px; margin-bottom:12px; }
+  .im-card .im-name {
+    font-size:11px; letter-spacing:3px; text-transform:uppercase;
+    color:var(--cream); margin-bottom:6px;
+  }
+  .im-card .im-desc { font-size:11px; color:var(--muted); line-height:1.5; }
+  .im-close {
+    position:absolute; top:16px; right:18px; background:transparent;
+    border:none; color:var(--muted); font-size:20px; cursor:pointer;
+    line-height:1; padding:4px;
+  }
+  .im-close:hover { color:var(--cream); }
+  /* section avec photo */
+  .section-with-photo-grid {
+    display:grid; grid-template-columns:1fr 1fr; gap:60px; align-items:start; margin-top:40px;
+  }
+
+</style>
+
+
+<!-- HERO -->
+<div class="hero">
+<div class="hero-photo">
+<div class="hero-photo-inner photo-zone" onclick="pickImage(this)">
+<div class="pz-label"><div class="photo-placeholder-icon">●</div><div style="font-size:11px;letter-spacing:3px;text-transform:uppercase;color:rgba(200,144,58,0.4);text-align:center;">+ Photo principale</div></div>
+</div>
+</div>
+<div class="hero-left">
+<div class="hero-label" contenteditable="true">Electronic Press Kit &nbsp;·&nbsp; 2026</div>
+<h1 class="hero-name" contenteditable="true">VALIANN</h1>
+<div class="hero-ep" contenteditable="true">SILHOUETTES — EP</div>
+<div class="hero-genre" contenteditable="true">Afro R&amp;B &nbsp;·&nbsp; MadeIT Records &nbsp;·&nbsp; 2026</div>
+<div class="hero-contact-bar">
+<div class="hero-contact-item">
+<span class="hero-contact-label" contenteditable="true">Management</span>
+<span class="hero-contact-value" contenteditable="true"><a contenteditable="true" href="mailto:fiona.paul@madeitrecords.com">contact@madeitrecords.com</a></span>
+</div>
+<div class="hero-contact-item">
+<span class="hero-contact-label" contenteditable="true">Artiste</span>
+<span class="hero-contact-value" contenteditable="true"><a contenteditable="true" href="mailto:valian.artiste@gmail.com">valian.artiste@gmail.com</a></span>
+</div>
+<div class="hero-contact-item">
+<span class="hero-contact-label" contenteditable="true">Instagram</span>
+<span class="hero-contact-value" contenteditable="true"><a contenteditable="true" href="https://instagram.com/valiann.r">@valiann.r</a></span>
+</div>
+</div>
+</div>
+</div>
+<div class="divider"></div><div class="insert-zone"><button class="insert-btn" onclick="insertSection(this.closest('.insert-zone').previousElementSibling)">+ Insérer une section</button></div><div class="insert-zone"><button class="insert-btn" onclick="insertSection(this.closest('.insert-zone').previousElementSibling)">+ Insérer une section</button></div>
+<!-- ABOUT -->
+<section draggable="true" style="position: relative;" class=""><div class="drag-handle" title="Déplacer cette section" draggable="false">⠿</div>
+<button class="section-del" onclick="removeSection(this)">✕ Supprimer</button>
+<div class="section-label" contenteditable="true">À propos</div>
+<h2 class="section-title" contenteditable="true">Une voix entre<br><em contenteditable="true">héritage et modernité</em></h2>
+<div class="about-grid">
+<div class="about-text">
+<p contenteditable="true"><strong contenteditable="true">Valiann</strong> est un artiste afro-R&amp;B dont le nom rend hommage au <em contenteditable="true">Valiha</em>, instrument traditionnel malgache, un héritage direct de son père, <strong contenteditable="true">Justin Vali</strong>, reconnu comme le plus grand joueur de Valiha au monde.</p>
+<p contenteditable="true"></p><p class="font-claude-response-body break-words whitespace-normal leading-[1.7]">À 3 ans, il tape la percussion sur scène aux côtés de son père. La musique, dans cette famille, ça se transmet avant même de marcher.</p><p class="font-claude-response-body break-words whitespace-normal leading-[1.7]">Ce qui frappe chez <b>Valiann</b>, c'est que tout est vrai. Les rythmes qui habitent ses sons, il les a absorbés toute son enfance sans même s'en rendre compte. Rien n'est fabriqué, tout est vécu. Aujourd'hui il construit son propre truc&nbsp;</p><p></p>
+<p contenteditable="true">Avec <strong contenteditable="true">SILHOUETTES</strong>, Valiann s'affirme pleinement. Son identité : . Ce premier EP est un projet de révélation autant que d'introspection, où chaque titre expose une facette, une tension, une vérité vécu&nbsp;</p>
+<p contenteditable="true">Un <b>afro</b>-R&amp;B ancré par une voix qui sait désormais exactement ce qu'elle veut dire.</p>
+</div>
+<div class="about-photo photo-zone" onclick="pickImage(this)">
+<div class="pz-label"><div class="photo-placeholder-icon" style="font-size:32px;color:rgba(200,144,58,0.35);">●</div><div style="font-size:11px;letter-spacing:3px;text-transform:uppercase;color:rgba(200,144,58,0.35);text-align:center;">+ Photo portrait</div></div>
+</div>
+</div>
+</section>
+<div class="divider"></div><div class="insert-zone"><button class="insert-btn" onclick="insertSection(this.closest('.insert-zone').previousElementSibling)">+ Insérer une section</button></div><div class="insert-zone"><button class="insert-btn" onclick="insertSection(this.closest('.insert-zone').previousElementSibling)">+ Insérer une section</button></div>
+<!-- SILHOUETTES EP -->
+<div class="ep-section" draggable="true" style="position: relative;"><div class="drag-handle" title="Déplacer cette section" draggable="false">⠿</div>
+<div class="ep-inner">
+<div class="section-label" contenteditable="true">Le projet</div>
+<div class="ep-cover">
+<div class="ep-cover-art photo-zone" onclick="pickImage(this)">
+<div class="pz-label"><div class="photo-placeholder-icon" style="font-size:32px;color:rgba(200,144,58,0.4);">◉</div><div style="font-size:11px;letter-spacing:3px;text-transform:uppercase;color:rgba(200,144,58,0.4);text-align:center;">+ Cover EP</div></div>
+</div>
+<div class="ep-info">
+<div class="ep-title-main" contenteditable="true">SILHOUETTES</div>
+<div class="ep-subtitle" contenteditable="true">Premier EP &nbsp;·&nbsp; Valiann &nbsp;·&nbsp; MadeIT Records</div>
+<p class="ep-desc" contenteditable="true"><strong contenteditable="true">SILHOUETTES</strong> est un EP de 7 titres qui explore les fragments d'histoires laissées en suspens. À travers <em contenteditable="true">WHINE, RESTE, DOUCEMENT, ISLAND GIRL, ON A ESSAYÉ, LADY, TOI ET MOI</em>, un jeune homme revisite les femmes qui ont marqué son parcours. Il ne raconte pas des prénoms. Il raconte des traces. Des corps croisés. Des regards. Des promesses inachevées.</p>
+<p class="ep-desc" contenteditable="true">Il parle de ce qu'il aurait voulu être pour elles. De ce qu'il pense pouvoir offrir de plus intense, de plus vrai, de plus vibrant. Entre désir assumé, fantasmes brûlants et répétition des mêmes scénarios, <em contenteditable="true">SILHOUETTES</em> devient le miroir d'une frustration : celle de ne jamais aller jusqu'au bout. Ces femmes deviennent des formes floues dans sa mémoire. Des silhouettes&nbsp; présentes, mais insaisissables.</p>
+<div class="ep-meta">
+<div class="ep-meta-item">
+<div class="meta-label" contenteditable="true">Sortie EP</div>
+<div class="meta-value" contenteditable="true">Juin 2026</div>
+</div>
+<div class="ep-meta-item">
+<div class="meta-label" contenteditable="true">Titres</div>
+<div class="meta-value" contenteditable="true">7 titres</div>
+</div>
+<div class="ep-meta-item">
+<div class="meta-label" contenteditable="true">Genre</div>
+<div class="meta-value" contenteditable="true">Afro R&amp;B</div>
+</div>
+<div class="ep-meta-item">
+<div class="meta-label" contenteditable="true">Label</div>
+<div class="meta-value" contenteditable="true">MadeIT Records</div>
+</div>
+</div>
+<!-- LABEL IMPRINT -->
+<div style="margin-top:40px;padding-top:28px;border-top:1px solid rgba(200,144,58,0.15);display:flex;align-items:center;gap:16px;">
+<div style="flex:1;height:1px;background:linear-gradient(to right,rgba(200,144,58,0.25),transparent);"></div>
+<p contenteditable="true" style="font-family:'Cormorant Garamond',serif;font-size:13px;font-style:italic;letter-spacing:0.18em;color:rgba(200,144,58,0.65);white-space:nowrap;">Produit &amp; distribué sous MadeIT Records</p>
+<div style="flex:1;height:1px;background:linear-gradient(to left,rgba(200,144,58,0.25),transparent);"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="divider"></div><div class="insert-zone"><button class="insert-btn" onclick="insertSection(this.closest('.insert-zone').previousElementSibling)">+ Insérer une section</button></div><div class="insert-zone"><button class="insert-btn" onclick="insertSection(this.closest('.insert-zone').previousElementSibling)">+ Insérer une section</button></div>
+<!-- SINGLES -->
+<section draggable="true" style="position: relative;"><div class="drag-handle" title="Déplacer cette section" draggable="false">⠿</div>
+<button class="section-del" onclick="removeSection(this)">✕ Supprimer</button>
+<div class="section-label" contenteditable="true">Singles</div>
+<h2 class="section-title" contenteditable="true">Deux singles avant<br><em contenteditable="true">l'EP complet</em></h2>
+<div class="singles-grid" id="singles-grid">
+<div class="single-card deletable">
+<button class="del-btn" onclick="this.closest('.single-card').remove()">✕</button>
+<div class="single-num" contenteditable="true">01</div>
+<div class="single-title" contenteditable="true">Reste</div>
+<div class="single-type" contenteditable="true">SINGLE</div>
+<p class="single-desc" contenteditable="true"><em>Reste</em>&nbsp;dévoile le besoin d'attachement — le mot qu'on dit quand on sait que l'autre est déjà parti. Une silhouette qui s'efface, et la voix qui lui demande de ne pas disparaître.&nbsp;</p>
+<div class="single-dates">
+<div class="single-date-item">
+<div class="date-label" contenteditable="true"><br></div>
+<div class="date-value" contenteditable="true"><br></div>
+</div>
+<div class="single-date-item">
+<div class="date-label" contenteditable="true">Sortie</div>
+<div class="date-value" contenteditable="true">Avril 2026</div>
+</div>
+</div>
+<div class="single-photo photo-zone" onclick="pickImage(this)"><div class="pz-label"><span style="font-size:18px;color:rgba(200,144,58,0.3);">◉</span><span style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(200,144,58,0.4);">+ Photo promo</span></div></div>
+</div>
+<div class="single-card deletable">
+<button class="del-btn" onclick="this.closest('.single-card').remove()">✕</button>
+<div class="single-num" contenteditable="true">02</div>
+<div class="single-title" contenteditable="true">Doucement</div>
+<div class="single-type" contenteditable="true">Single&nbsp;&nbsp;</div>
+<p class="single-desc" contenteditable="true"><em contenteditable="true"><em>Doucement</em><span style="font-style: normal;">&nbsp;incarne le désir brut et l'échec qui l'accompagne. Le titre expose la tension entre ce qu'on veut exprimer et ce désir brut de l'interdit</span></em></p>
+<div class="single-dates">
+<div class="single-date-item">
+<div class="date-label" contenteditable="true"><br></div>
+<div class="date-value" contenteditable="true"><br></div>
+</div>
+<div class="single-date-item">
+<div class="date-label" contenteditable="true">Sortie</div>
+<div class="date-value" contenteditable="true">Mai&nbsp; 2026</div>
+</div>
+</div>
+<div class="single-photo photo-zone" onclick="pickImage(this)"><div class="pz-label"><span style="font-size:18px;color:rgba(200,144,58,0.3);">◉</span><span style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(200,144,58,0.4);">+ Photo promo</span></div></div>
+</div>
+</div>
+</section>
+<div class="divider"></div><div class="insert-zone"><button class="insert-btn" onclick="insertSection(this.closest('.insert-zone').previousElementSibling)">+ Insérer une section</button></div><div class="insert-zone"><button class="insert-btn" onclick="insertSection(this.closest('.insert-zone').previousElementSibling)">+ Insérer une section</button></div>
+<!-- TRACKLIST -->
+<section draggable="true" style="position: relative;"><div class="drag-handle" title="Déplacer cette section" draggable="false">⠿</div>
+<button class="section-del" onclick="removeSection(this)">✕ Supprimer</button>
+<div class="section-label" contenteditable="true">Tracklist</div>
+<h2 class="section-title" contenteditable="true">Les 7 titres de <em contenteditable="true">SILHOUETTES</em></h2>
+<div style="margin-top:40px;display:grid;gap:3px;">
+<div style="display:grid;grid-template-columns:50px 1fr 1fr;background:#1c1410;border:1px solid rgba(200,144,58,0.2);padding:14px 24px;align-items:center;">
+<span contenteditable="true" style="font-family:'Cormorant Garamond',serif;font-size:28px;color:rgba(194,85,56,0.4);font-weight:300;">01</span>
+<span contenteditable="true" style="font-family:'Cormorant Garamond',serif;font-size:22px;color:#FFF6E8;letter-spacing:2px;">WHINE</span>
+<span contenteditable="true" style="font-size:12px;color:#8A7F76;font-style:italic;">Le désir brut. L'attraction première.</span>
+</div>
+<div style="display:grid;grid-template-columns:50px 1fr 1fr;background:#141210;border:1px solid rgba(200,144,58,0.15);padding:14px 24px;align-items:center;">
+<span contenteditable="true" style="font-family:'Cormorant Garamond',serif;font-size:28px;color:rgba(194,85,56,0.4);font-weight:300;">02</span>
+<span contenteditable="true" style="font-family:'Cormorant Garamond',serif;font-size:22px;color:#FFF6E8;letter-spacing:2px;">RESTE <span contenteditable="true" style="font-size:11px;color:#C25538;letter-spacing:4px;font-family:'Inter',sans-serif;">SINGLE</span></span>
+<span contenteditable="true" style="font-size:12px;color:#8A7F76;font-style:italic;">Le besoin d'attachement. Le mot qu'on dit trop tard.</span>
+</div>
+<div style="display:grid;grid-template-columns:50px 1fr 1fr;background:#1c1410;border:1px solid rgba(200,144,58,0.2);padding:14px 24px;align-items:center;">
+<span contenteditable="true" style="font-family:'Cormorant Garamond',serif;font-size:28px;color:rgba(194,85,56,0.4);font-weight:300;">03</span>
+<span contenteditable="true" style="font-family:'Cormorant Garamond',serif;font-size:22px;color:#FFF6E8;letter-spacing:2px;">DOUCEMENT <span contenteditable="true" style="font-size:11px;color:#C25538;letter-spacing:4px;font-family:'Inter',sans-serif;">SINGLE</span></span>
+<span contenteditable="true" style="font-size:12px;color:#8A7F76;font-style:italic;">Le désir brut et l'échec. Ce qu'on n'ose pas finir.</span>
+</div>
+<div style="display:grid;grid-template-columns:50px 1fr 1fr;background:#141210;border:1px solid rgba(200,144,58,0.15);padding:14px 24px;align-items:center;">
+<span contenteditable="true" style="font-family:'Cormorant Garamond',serif;font-size:28px;color:rgba(194,85,56,0.4);font-weight:300;">04</span>
+<span contenteditable="true" style="font-family:'Cormorant Garamond',serif;font-size:22px;color:#FFF6E8;letter-spacing:2px;">ISLAND GIRL</span>
+<span contenteditable="true" style="font-size:12px;color:#8A7F76;font-style:italic;">Une trace. Un corps. Un souvenir de l'île.</span>
+</div>
+<div style="display:grid;grid-template-columns:50px 1fr 1fr;background:#1c1410;border:1px solid rgba(200,144,58,0.2);padding:14px 24px;align-items:center;">
+<span contenteditable="true" style="font-family:'Cormorant Garamond',serif;font-size:28px;color:rgba(194,85,56,0.4);font-weight:300;">05</span>
+<span contenteditable="true" style="font-family:'Cormorant Garamond',serif;font-size:22px;color:#FFF6E8;letter-spacing:2px;">ON A ESSAYÉ</span>
+<span contenteditable="true" style="font-size:12px;color:#8A7F76;font-style:italic;">L'échec exposé. Ce qu'on s'avouait sans se le dire.</span>
+</div>
+<div style="display:grid;grid-template-columns:50px 1fr 1fr;background:#141210;border:1px solid rgba(200,144,58,0.15);padding:14px 24px;align-items:center;">
+<span contenteditable="true" style="font-family:'Cormorant Garamond',serif;font-size:28px;color:rgba(194,85,56,0.4);font-weight:300;">06</span>
+<span contenteditable="true" style="font-family:'Cormorant Garamond',serif;font-size:22px;color:#FFF6E8;letter-spacing:2px;">LADY</span>
+<span contenteditable="true" style="font-size:12px;color:#8A7F76;font-style:italic;">Le fantasme. Ce qu'elle représente plus que ce qu'elle est.</span>
+</div>
+<div style="display:grid;grid-template-columns:50px 1fr 1fr;background:#1c1410;border:1px solid rgba(200,144,58,0.2);padding:14px 24px;align-items:center;">
+<span contenteditable="true" style="font-family:'Cormorant Garamond',serif;font-size:28px;color:rgba(194,85,56,0.4);font-weight:300;">07</span>
+<span contenteditable="true" style="font-family:'Cormorant Garamond',serif;font-size:22px;color:#FFF6E8;letter-spacing:2px;">TOI ET MOI</span>
+<span contenteditable="true" style="font-size:12px;color:#8A7F76;font-style:italic;">L'attachement ultime. Présentes. Mais insaisissables.</span>
+</div>
+</div>
+</section>
+<div class="divider"></div><div class="insert-zone"><button class="insert-btn" onclick="insertSection(this.closest('.insert-zone').previousElementSibling)">+ Insérer une section</button></div><div class="insert-zone"><button class="insert-btn" onclick="insertSection(this.closest('.insert-zone').previousElementSibling)">+ Insérer une section</button></div>
+<!-- PARCOURS -->
+<section draggable="true" style="position: relative;"><div class="drag-handle" title="Déplacer cette section" draggable="false">⠿</div>
+<button class="section-del" onclick="removeSection(this)">✕ Supprimer</button>
+<div class="section-label" contenteditable="true">Parcours</div>
+<h2 class="section-title" contenteditable="true">De sa chambre à<br><em contenteditable="true">la lumière</em></h2>
+<div class="timeline" id="timeline">
+<div class="timeline-item deletable"><button class="del-btn" onclick="this.closest('.timeline-item').remove()">✕</button>
+<div class="timeline-year" contenteditable="true">Enfance</div>
+<div class="timeline-text" contenteditable="true"><strong contenteditable="true">Premiers pas sur scène</strong> — Valiann monte sur scène dès 3 ans comme percussionniste aux côtés de son père Justin Vali. Sa voix, héritage de sa grand-mère, s'affirme très tôt comme son instrument principal.</div>
+</div>
+<div class="timeline-item deletable"><button class="del-btn" onclick="this.closest('.timeline-item').remove()">✕</button>
+<div class="timeline-year" contenteditable="true">Formation</div>
+<div class="timeline-text" contenteditable="true"><strong contenteditable="true">Identité artistique</strong> — Il développe une sensibilité hors norme, forge son style en explorant la richesse des rythmes africains combinés aux sonorités modernes. Participe à l'émission allemande <em contenteditable="true">1, 2, 3</em>.</div>
+</div>
+<div class="timeline-item deletable"><button class="del-btn" onclick="this.closest('.timeline-item').remove()">✕</button>
+<div class="timeline-year" contenteditable="true">2025</div>
+<div class="timeline-text" contenteditable="true"><strong contenteditable="true">TMBF (Tu M'as Fait Bobo)</strong> — Premier single, sortie officielle. Valiann livre sans artifice la douleur d'une rupture avec des mots simples, vrais et une interprétation à fleur de peau.</div>
+</div>
+<div class="timeline-item deletable"><button class="del-btn" onclick="this.closest('.timeline-item').remove()">✕</button>
+<div class="timeline-year" contenteditable="true">2025</div>
+<div class="timeline-text" contenteditable="true"><strong contenteditable="true">My Lova</strong>&nbsp;: Deuxième single afro-R&amp;B, signature sonore affirmée. Plongée dans les racines malgaches, retour aux sources pour nourrir la suite du projet.</div>
+</div>
+<div class="timeline-item deletable"><button class="del-btn" onclick="this.closest('.timeline-item').remove()">✕</button>
+<div class="timeline-year" contenteditable="true">2025</div>
+<div class="timeline-text" contenteditable="true"><strong contenteditable="true">Dans tes bras (DTB)</strong>&nbsp; : Troisième single. Valiann confirme son univers avec ce titre intimiste qui prépare l'EP SILHOUETTES.</div>
+</div>
+<div class="timeline-item deletable"><button class="del-btn" onclick="this.closest('.timeline-item').remove()">✕</button>
+<div class="timeline-year" contenteditable="true">2026</div>
+<div class="timeline-text" contenteditable="true"><strong contenteditable="true">Production SILHOUETTES</strong>&nbsp; : Enregistrement de l'EP complet en studio. Sessions intenses, construction d'un univers sonore cohérent entre héritage africain et R&amp;B contemporain.</div>
+</div>
+<div class="timeline-item deletable"><button class="del-btn" onclick="this.closest('.timeline-item').remove()">✕</button>
+<div class="timeline-year" contenteditable="true">2026</div>
+<div class="timeline-text" contenteditable="true"><span style="color: rgb(255, 246, 232);">Single Reste</span>&nbsp; :&nbsp;&nbsp;Lancement de la campagne de promotion de l'EP.</div>
+</div>
+<div class="timeline-item deletable"><button class="del-btn" onclick="this.closest('.timeline-item').remove()">✕</button>
+<div class="timeline-year" contenteditable="true">2026</div>
+<div class="timeline-text" contenteditable="true"><span style="color: rgb(255, 246, 232);">Clips&nbsp; Doucement&nbsp;</span></div>
+</div>
+<div class="timeline-item deletable"><button class="del-btn" onclick="this.closest('.timeline-item').remove()">✕</button><div class="timeline-year" contenteditable="true">2026</div><div class="timeline-text" contenteditable="true"><span style="color: rgb(255, 246, 232);"><b>SILHOUETTES</b> :&nbsp; </span>Lancement de l'EP sur toutes les plateformes.&nbsp;</div></div></div>
+<button class="add-item-btn" onclick="addTimelineItem()">+ Ajouter une étape</button>
+</section>
+<div class="divider"></div><div class="insert-zone"><button class="insert-btn" onclick="insertSection(this.closest('.insert-zone').previousElementSibling)">+ Insérer une section</button></div><div class="insert-zone"><button class="insert-btn" onclick="insertSection(this.closest('.insert-zone').previousElementSibling)">+ Insérer une section</button></div>
+<!-- GALERIE PHOTOS -->
+<section style="padding-bottom: 40px; position: relative;" draggable="true"><div class="drag-handle" title="Déplacer cette section" draggable="false">⠿</div>
+<button class="section-del" onclick="removeSection(this)">✕ Supprimer</button>
+<div class="section-label" contenteditable="true">Visuels</div>
+<h2 class="section-title" contenteditable="true">Photos &amp; <em contenteditable="true">visuels promo</em></h2>
+<div class="gallery-grid" id="gallery-grid">
+<div class="gallery-item gallery-item-tall photo-zone deletable" contenteditable="true" onclick="pickImage(this)">
+<button class="del-btn" onclick="event.stopPropagation();removeGalleryItem(this)">✕</button>
+<div class="pz-label"><div class="gallery-icon">●</div><span>+ Photo promo 1</span></div>
+</div>
+<div class="gallery-item photo-zone deletable" contenteditable="true" onclick="pickImage(this)">
+<button class="del-btn" onclick="event.stopPropagation();removeGalleryItem(this)">✕</button>
+<div class="pz-label"><div class="gallery-icon">●</div><span>+ Photo live</span></div>
+</div>
+<div class="gallery-item photo-zone deletable" contenteditable="true" onclick="pickImage(this)">
+<button class="del-btn" onclick="event.stopPropagation();removeGalleryItem(this)">✕</button>
+<div class="pz-label"><div class="gallery-icon">●</div><span>+ Still clip 1</span></div>
+</div>
+<div class="gallery-item photo-zone deletable" contenteditable="true" onclick="pickImage(this)">
+<button class="del-btn" onclick="event.stopPropagation();removeGalleryItem(this)">✕</button>
+<div class="pz-label"><div class="gallery-icon">●</div><span>+ Still clip 2</span></div>
+</div>
+<div class="add-photo-btn" id="add-gallery-btn" onclick="addGalleryItem()">
+<div class="add-icon">+</div><span>Ajouter photo</span>
+</div>
+</div>
+<p contenteditable="true" style="margin-top: 20px; font-size: 12px; color: var(--muted); letter-spacing: 1px; text-align: center;">Tous les visuels HD disponibles sur demande - contact@madeitrecords.com</p>
+</section>
+<div class="divider"></div><div class="insert-zone"><button class="insert-btn" onclick="insertSection(this.closest('.insert-zone').previousElementSibling)">+ Insérer une section</button></div><div class="insert-zone"><button class="insert-btn" onclick="insertSection(this.closest('.insert-zone').previousElementSibling)">+ Insérer une section</button></div>
+<!-- CONTACT -->
+<div class="contact-section">
+<div class="section-label" contenteditable="true">Contact</div>
+<h2 class="section-title" contenteditable="true" style="text-align:center;">Bookings &amp; <em contenteditable="true">presse</em></h2>
+<div class="contact-cards">
+<div class="contact-card">
+<div class="cc-label" contenteditable="true">Management / Label</div>
+<div class="cc-value" contenteditable="true"><a contenteditable="true" href="mailto:fiona.paul@madeitrecords.com">contact@madeitrecords.com</a></div>
+</div>
+<div class="contact-card">
+<div class="cc-label" contenteditable="true">Artiste</div>
+<div class="cc-value" contenteditable="true"><a contenteditable="true" href="mailto:valian.artiste@gmail.com">valian.artiste@gmail.com</a></div>
+</div>
+<div class="contact-card">
+<div class="cc-label" contenteditable="true">Instagram</div>
+<div class="cc-value" contenteditable="true"><a contenteditable="true" href="https://instagram.com/valiann.r">@valiann.r</a></div>
+</div>
+<div class="contact-card">
+<div class="cc-label" contenteditable="true">YouTube</div>
+<div class="cc-value" contenteditable="true"><a contenteditable="true" href="https://youtube.com">Valiann</a></div>
+</div>
+</div>
+</div>
+<!-- FOOTER -->
+<footer>
+<span contenteditable="true">VALIANN &nbsp;·&nbsp; SILHOUETTES EP &nbsp;·&nbsp; MadeIT Records &nbsp;·&nbsp; 2026</span>
+<span contenteditable="true">Tous droits réservés &nbsp;·&nbsp; Confidentiel — usage presse uniquement</span>
+</footer>
+<!-- EDIT HINT -->
+<script>
+/* ── BARRE D'ÉDITION FIXE ─────────────────────────────── */
+var savedRange = null;
+var savedCE = null; // contenteditable qui avait le focus
+
+function _saveSel() {
+  var sel = window.getSelection();
+  if (sel && !sel.isCollapsed && sel.rangeCount > 0) {
+    savedRange = sel.getRangeAt(0).cloneRange();
+    // Retrouver l'ancêtre contenteditable
+    var node = sel.anchorNode;
+    while (node && node.nodeType !== 1) node = node.parentNode;
+    savedCE = node ? node.closest('[contenteditable]') : null;
+    updateEBState();
+  }
+}
+
+// Sauvegarder la sélection quand l'utilisateur sélectionne du texte
+document.addEventListener('mouseup', function(e) {
+  if (e.target.closest('#edit-bar')) return;
+  _saveSel();
+});
+document.addEventListener('keyup', function(e) {
+  _saveSel();
+});
+
+function restoreSel() {
+  if (!savedRange) return false;
+  // Remettre le focus sur le bon élément AVANT de restaurer la sélection
+  if (savedCE) savedCE.focus();
+  var sel = window.getSelection();
+  sel.removeAllRanges();
+  sel.addRange(savedRange);
+  return true;
+}
+
+function ebFmt(cmd) {
+  restoreSel();
+  document.execCommand(cmd, false, null);
+  var sel = window.getSelection();
+  if (sel && sel.rangeCount > 0) savedRange = sel.getRangeAt(0).cloneRange();
+  updateEBState();
+}
+
+function ebColor(c) {
+  restoreSel();
+  document.execCommand('foreColor', false, c);
+  var sel = window.getSelection();
+  if (sel && sel.rangeCount > 0) savedRange = sel.getRangeAt(0).cloneRange();
+}
+
+function applySize(s) {
+  if (!s) return;
+  restoreSel();
+  document.execCommand('fontSize', false, s);
+  var sel = window.getSelection();
+  if (sel && sel.rangeCount > 0) savedRange = sel.getRangeAt(0).cloneRange();
+  setTimeout(function(){ document.getElementById('eb-size').value = ''; }, 10);
+}
+
+function applyFont(f) {
+  if (!f) return;
+  restoreSel();
+  document.execCommand('fontName', false, f);
+  var sel = window.getSelection();
+  if (sel && sel.rangeCount > 0) savedRange = sel.getRangeAt(0).cloneRange();
+  setTimeout(function(){ document.getElementById('eb-font').value = ''; }, 10);
+}
+
+function updateEBState() {
+  try {
+    var bold = document.getElementById('eb-bold');
+    var ital = document.getElementById('eb-italic');
+    var und  = document.getElementById('eb-underline');
+    if (bold) bold.classList.toggle('eb-active', document.queryCommandState('bold'));
+    if (ital) ital.classList.toggle('eb-active', document.queryCommandState('italic'));
+    if (und)  und.classList.toggle('eb-active',  document.queryCommandState('underline'));
+  } catch(e) {}
+}
+
+/* ── DRAG & DROP SECTIONS ────────────────────────────── */
+var dragSrc = null;
+
+function initDragHandles() {
+  document.querySelectorAll('section, .ep-section').forEach(function(sec) {
+    if (sec.querySelector('.drag-handle')) return;
+    sec.style.position = 'relative';
+    var h = document.createElement('div');
+    h.className = 'drag-handle';
+    h.innerHTML = '⠿';
+    h.title = 'Déplacer cette section';
+    h.setAttribute('draggable', false);
+    sec.insertBefore(h, sec.firstChild);
+
+    sec.setAttribute('draggable', 'true');
+    sec.addEventListener('dragstart', function(e) {
+      dragSrc = sec;
+      setTimeout(function(){ sec.classList.add('dragging'); }, 0);
+      e.dataTransfer.effectAllowed = 'move';
+    });
+    sec.addEventListener('dragend', function() {
+      sec.classList.remove('dragging');
+      document.querySelectorAll('.drag-over').forEach(function(el){ el.classList.remove('drag-over'); });
+    });
+    sec.addEventListener('dragover', function(e) {
+      e.preventDefault();
+      if (sec !== dragSrc) sec.classList.add('drag-over');
+    });
+    sec.addEventListener('dragleave', function() { sec.classList.remove('drag-over'); });
+    sec.addEventListener('drop', function(e) {
+      e.preventDefault();
+      sec.classList.remove('drag-over');
+      if (dragSrc && dragSrc !== sec) {
+        var parent = sec.parentNode;
+        var allSections = Array.from(parent.children);
+        var srcIdx = allSections.indexOf(dragSrc);
+        var tgtIdx = allSections.indexOf(sec);
+        if (srcIdx < tgtIdx) {
+          parent.insertBefore(dragSrc, sec.nextSibling);
+        } else {
+          parent.insertBefore(dragSrc, sec);
+        }
+      }
+    });
+  });
+}
+
+window.addEventListener('load', function(){
+  initDragHandles();
+
+  // Boutons + entre sections
+  document.querySelectorAll('.divider').forEach(function(d){
+    var z = document.createElement('div');
+    z.className = 'insert-zone';
+    z.innerHTML = '<button class="insert-btn" onclick="insertSection(this.closest(\'.insert-zone\').previousElementSibling)">+ Insérer une section</button>';
+    d.parentNode.insertBefore(z, d.nextSibling);
+  });
+});
+
+/* ── UPLOAD PHOTO ───────────────────────────────────── */
+function pickImage(zone){
+  var inp = document.createElement('input'); inp.type = 'file'; inp.accept = 'image/*';
+  inp.onchange = function(e){
+    var file = e.target.files[0]; if(!file) return;
+    var reader = new FileReader();
+    reader.onload = function(ev){
+      var ex = zone.querySelector('img'); if(ex) ex.remove();
+      var img = document.createElement('img'); img.src = ev.target.result;
+      zone.insertBefore(img, zone.firstChild);
+      zone.classList.add('has-photo');
+      zone.oncontextmenu = function(evt){
+        evt.preventDefault();
+        if(confirm('Supprimer cette photo ?')){ img.remove(); zone.classList.remove('has-photo'); zone.oncontextmenu = null; }
+      };
+    };
+    reader.readAsDataURL(file);
+  }; inp.click();
+}
+
+/* ── GALERIE ────────────────────────────────────────── */
+function removeGalleryItem(btn){
+  btn.closest('.gallery-item').remove();
+  var items = document.querySelectorAll('#gallery-grid .gallery-item');
+  items.forEach(function(it){ it.classList.remove('gallery-item-tall'); });
+  if(items.length > 0) items[0].classList.add('gallery-item-tall');
+}
+function addGalleryItem(){
+  var grid = document.getElementById('gallery-grid');
+  var addBtn = document.getElementById('add-gallery-btn');
+  var item = document.createElement('div');
+  item.className = 'gallery-item photo-zone deletable';
+  item.onclick = function(){ pickImage(this); };
+  item.innerHTML = '<button class="del-btn" onclick="event.stopPropagation();removeGalleryItem(this)">✕</button><div class="pz-label"><div class="gallery-icon">●</div><span>+ Nouvelle photo</span></div>';
+  grid.insertBefore(item, addBtn);
+}
+
+/* ── TIMELINE ───────────────────────────────────────── */
+function addTimelineItem(){
+  var tl = document.getElementById('timeline');
+  var item = document.createElement('div'); item.className = 'timeline-item deletable';
+  item.innerHTML = '<button class="del-btn" onclick="this.closest(\'.timeline-item\').remove()">✕</button><div class="timeline-year" contenteditable="true">Année</div><div class="timeline-text" contenteditable="true"><strong>Titre</strong> — Description ici.</div>';
+  tl.appendChild(item);
+  item.querySelector('.timeline-year').focus();
+}
+
+/* ── SINGLES ────────────────────────────────────────── */
+function addSingleCard(){
+  var grid = document.getElementById('singles-grid');
+  var n = grid.querySelectorAll('.single-card').length + 1;
+  var card = document.createElement('div'); card.className = 'single-card deletable';
+  card.innerHTML = '<button class="del-btn" onclick="this.closest(\'.single-card\').remove()">✕</button>' +
+    '<div class="single-num" contenteditable="true">0' + n + '</div>' +
+    '<div class="single-title" contenteditable="true">Titre du single</div>' +
+    '<div class="single-type" contenteditable="true">Single · Type</div>' +
+    '<p class="single-desc" contenteditable="true">Description ici.</p>' +
+    '<div class="single-photo photo-zone" onclick="pickImage(this)"><div class="pz-label"><span>◉</span><span>+ Photo</span></div></div>';
+  grid.appendChild(card);
+  card.querySelector('.single-title').focus();
+}
+
+/* ── SUPPRIMER SECTION ──────────────────────────────── */
+function removeSection(btn){
+  var sec = btn.closest('section, .ep-section');
+  var div = sec ? sec.nextElementSibling : null;
+  if(!sec) return;
+  if(!confirm('Supprimer cette section ?')) return;
+  if(div && div.classList.contains('divider')) div.remove();
+  sec.remove();
+}
+
+/* ── INSÉRER SECTION ────────────────────────────────── */
+var _insertAfterEl = null;
+function insertSection(afterEl){
+  _insertAfterEl = afterEl;
+  document.getElementById('insert-modal-overlay').classList.add('active');
+}
+function closeInsertModal(){
+  document.getElementById('insert-modal-overlay').classList.remove('active');
+  _insertAfterEl = null;
+}
+document.addEventListener('keydown', function(e){ if(e.key==='Escape') closeInsertModal(); });
+
+function doInsertSection(type){
+  closeInsertModal();
+  var afterEl = _insertAfterEl;
+  if(!afterEl) return;
+  var sd = '<button class="section-del" onclick="removeSection(this)">✕ Supprimer</button>';
+  var tmpl = '';
+  var p = 'style="font-size:15px;color:rgba(255,246,232,0.72);line-height:1.9;"';
+  if(type==='text'){
+    tmpl = '<section class="deletable-section">'+sd+'<div class="section-label" contenteditable="true">Label</div><h2 class="section-title" contenteditable="true">Nouvelle section</h2><p '+p+' contenteditable="true">Clique pour écrire ici.</p></section>';
+  } else if(type==='two-col'){
+    tmpl = '<section class="deletable-section">'+sd+'<div class="section-label" contenteditable="true">Label</div><h2 class="section-title" contenteditable="true">Nouvelle section</h2><div style="display:grid;grid-template-columns:1fr 1fr;gap:60px;margin-top:40px;"><p '+p+' contenteditable="true">Colonne gauche — clique pour écrire.</p><p '+p+' contenteditable="true">Colonne droite — clique pour écrire.</p></div></section>';
+  } else if(type==='quote'){
+    tmpl = '<section class="deletable-section" style="text-align:center;">'+sd+'<blockquote style="font-family:\"Cormorant Garamond\",serif;font-size:clamp(22px,4vw,48px);font-weight:300;font-style:italic;line-height:1.3;color:var(--cream);max-width:780px;margin:0 auto;padding:0 40px;border-left:3px solid var(--terra);" contenteditable="true">&ldquo;Ta citation ici.&rdquo;</blockquote><p style="margin-top:16px;font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--muted);" contenteditable="true">— Source</p></section>';
+  } else if(type==='photo-text'){
+    tmpl = '<section class="deletable-section">'+sd+'<div class="section-label" contenteditable="true">Label</div><h2 class="section-title" contenteditable="true">Nouvelle section</h2><div class="section-with-photo-grid"><div class="photo-zone" onclick="uploadPhoto(this)" oncontextmenu="deletePhoto(event,this)" title="Clic: ajouter photo | Clic droit: supprimer"><span class="photo-hint">+ Photo<br/><small>clic pour ajouter</small></span><input type="file" accept="image/*" style="display:none"/></div><p '+p+' contenteditable="true">Texte descriptif à droite de la photo. Clique pour éditer ce paragraphe.</p></div></section>';
+  } else if(type==='list'){
+    tmpl = '<section class="deletable-section">'+sd+'<div class="section-label" contenteditable="true">Label</div><h2 class="section-title" contenteditable="true">Nouvelle section</h2><ul style="margin-top:32px;list-style:none;padding:0;display:flex;flex-direction:column;gap:12px;" id="ul-new-'+Date.now()+'"><li style="display:flex;align-items:start;gap:16px;font-size:15px;color:rgba(255,246,232,0.72);"><span style="color:var(--gold);margin-top:4px;">◆</span><span contenteditable="true">Premier élément de la liste</span></li><li style="display:flex;align-items:start;gap:16px;font-size:15px;color:rgba(255,246,232,0.72);"><span style="color:var(--gold);margin-top:4px;">◆</span><span contenteditable="true">Deuxième élément</span></li><li style="display:flex;align-items:start;gap:16px;font-size:15px;color:rgba(255,246,232,0.72);"><span style="color:var(--gold);margin-top:4px;">◆</span><span contenteditable="true">Troisième élément</span></li></ul></section>';
+  } else if(type==='contact'){
+    tmpl = '<section class="deletable-section" style="text-align:center;">'+sd+'<div class="section-label" contenteditable="true">Contact</div><h2 class="section-title" contenteditable="true">Restons en <em contenteditable="true">contact</em></h2><p style="font-size:14px;letter-spacing:3px;text-transform:uppercase;color:var(--muted);margin-top:32px;" contenteditable="true">Management</p><p style="font-size:18px;color:var(--cream);margin-top:8px;" contenteditable="true">nom@email.com</p><p style="font-size:14px;letter-spacing:3px;text-transform:uppercase;color:var(--muted);margin-top:24px;" contenteditable="true">Label</p><p style="font-size:18px;color:var(--cream);margin-top:8px;" contenteditable="true">label@email.com</p></section>';
+  }
+  if(!tmpl) return;
+  var div2 = document.createElement('div'); div2.innerHTML = tmpl;
+  var ns = div2.firstChild;
+  var ndiv = document.createElement('div'); ndiv.className = 'divider';
+  afterEl.parentNode.insertBefore(ns, afterEl.nextSibling);
+  ns.parentNode.insertBefore(ndiv, ns.nextSibling);
+  initDragHandles();
+  // insert-zone after new section
+  var iz = document.createElement('div');
+  iz.className = 'insert-zone';
+  iz.innerHTML = '<button class="insert-btn" onclick="insertSection(this.closest(\'.insert-zone\').previousElementSibling)">+ Insérer une section</button>';
+  ns.parentNode.insertBefore(iz, ndiv.nextSibling);
+  // scroll to new section
+  ns.scrollIntoView({behavior:'smooth', block:'center'});
+}
+
+/* ── SAUVEGARDER ────────────────────────────────────── */
+function saveModifs(){
+  var html = "<!DOCTYPE html>\n" + document.documentElement.outerHTML;
+  var blob = new Blob([html], {type:"text/html;charset=utf-8"});
+  var reader = new FileReader();
+  reader.onload = function(e){
+    var a = document.createElement("a");
+    a.href = e.target.result;
+    a.download = "VALIANN_EPK_SILHOUETTES.html";
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  };
+  reader.readAsDataURL(blob);
+}
+</script>
+
+<!-- MODAL INSÉRER SECTION -->
+<div id="insert-modal-overlay">
+  <div id="insert-modal">
+    <button class="im-close" onclick="closeInsertModal()">✕</button>
+    <h3>Insérer une section</h3>
+    <div class="im-sub">Choisissez un type de contenu</div>
+    <div class="im-cards">
+      <div class="im-card" onclick="doInsertSection('text')">
+        <div class="im-icon">✍</div>
+        <div class="im-name">Texte libre</div>
+        <div class="im-desc">Titre + paragraphe éditable sur toute la largeur</div>
+      </div>
+      <div class="im-card" onclick="doInsertSection('two-col')">
+        <div class="im-icon">⊟</div>
+        <div class="im-name">Deux colonnes</div>
+        <div class="im-desc">Titre + deux blocs de texte côte à côte</div>
+      </div>
+      <div class="im-card" onclick="doInsertSection('quote')">
+        <div class="im-icon">❝</div>
+        <div class="im-name">Citation</div>
+        <div class="im-desc">Grande citation stylistique centrée</div>
+      </div>
+      <div class="im-card" onclick="doInsertSection('photo-text')">
+        <div class="im-icon">◫</div>
+        <div class="im-name">Photo + Texte</div>
+        <div class="im-desc">Image à gauche, texte à droite</div>
+      </div>
+      <div class="im-card" onclick="doInsertSection('list')">
+        <div class="im-icon">≡</div>
+        <div class="im-name">Liste</div>
+        <div class="im-desc">Titre + liste de points éditables</div>
+      </div>
+      <div class="im-card" onclick="doInsertSection('contact')">
+        <div class="im-icon">@</div>
+        <div class="im-name">Contact</div>
+        <div class="im-desc">Bloc contact avec email et liens</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body></html>
